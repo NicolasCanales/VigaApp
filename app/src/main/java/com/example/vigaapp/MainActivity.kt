@@ -484,6 +484,8 @@ class MainActivity : AppCompatActivity() {
         appendLog("Starting BLE scan, filter: $serviceFilter")
 
         isScanning = true
+        scanBT.isEnabled = false
+        Toast.makeText(applicationContext,"INICIO DE ESCANEO",Toast.LENGTH_LONG).show()
         lifecycleState = BLELifecycleState.Scanning
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -514,6 +516,8 @@ class MainActivity : AppCompatActivity() {
 
         appendLog("Stopping BLE scan")
         isScanning = false
+        scanBT.isEnabled = true
+        //TODO:
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.BLUETOOTH_SCAN
@@ -625,6 +629,7 @@ class MainActivity : AppCompatActivity() {
     private  var vibotSelected = ""
 
     var selectVibot = false
+    var selectVibotConnectionError = false
     fun withItems(view: MainActivity) {
 
         val builder = AlertDialog.Builder(this@MainActivity)
@@ -643,6 +648,7 @@ class MainActivity : AppCompatActivity() {
 
 
     }
+
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             val name: String? = result.scanRecord?.deviceName ?: result.device.name
@@ -712,6 +718,7 @@ class MainActivity : AppCompatActivity() {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     appendLog("Connected to $deviceAddress")
                     view_state_bt.setImageDrawable(getResources().getDrawable(R.drawable.ellipse_1))
+                    selectVibotConnectionError = false
                     // TODO: bonding state
                     if (ActivityCompat.checkSelfPermission(
                             this@MainActivity,
@@ -753,14 +760,17 @@ class MainActivity : AppCompatActivity() {
 
                 cancelTask()
                 view_state_bt.setImageDrawable(getResources().getDrawable(R.drawable.ellipse2))
-                text_id_vibot.text = "------"
+                text_id_vibot.text = ""
                 selectVibot = false
                 appendLog("Disconnected from $deviceAddress")
                 list.clear()
                 setConnectedGattToNull()
                 gatt.close()
                 lifecycleState = BLELifecycleState.Disconnected
-                bleRestartLifecycle()
+                //bleRestartLifecycle()
+                Toast.makeText(applicationContext,"Reintentar Conexión!",Toast.LENGTH_LONG).show()
+                bleEndLifecycle()
+                cancelTask()
 
 //                setConnectedGattToNull()
 //                gatt.close()
